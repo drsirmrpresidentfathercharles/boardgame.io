@@ -142,7 +142,7 @@ export class MCTSBot extends Bot {
   expand(node) {
     const actions = node.actions;
 
-    if (actions.length == 0) {
+    if (actions.length == 0 || node.state.ctx.gameover !== undefined) {
       return node;
     }
 
