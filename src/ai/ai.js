@@ -7,6 +7,7 @@
  */
 
 import { createGameReducer } from '../core/reducer';
+import { alea } from '../core/random.alea';
 
 // Initial implementation that just takes the first move
 // and simulates till the end of the game.
@@ -41,22 +42,50 @@ export function Step({ game, bots, state }) {
 }
 
 export class Bot {
-  constructor({ next, playerID }) {
+  constructor({ next, playerID, seed }) {
     this.next = next;
     this.playerID = playerID;
+    this.seed = seed;
+  }
+
+  random(arg) {
+    let number;
+
+    if (this.seed) {
+      let r = new alea(this.seed, { state: true });
+
+      if (this.prngstate) {
+        r = new alea('', { state: this.prngstate });
+      }
+
+      this.prngstate = r.state();
+    } else {
+      number = Math.random();
+    }
+
+    if (arg) {
+      if (arg.length) {
+        const id = Math.floor(number * arg.length);
+        return arg[id];
+      } else {
+        return Math.floor(number * arg);
+      }
+    }
+
+    return number;
   }
 }
 
 export class RandomBot extends Bot {
   play({ G, ctx }) {
     const moves = this.next(G, ctx, this.playerID);
-    return { action: moves[0] };
+    return { action: this.random(moves) };
   }
 }
 
 export class MCTSBot extends Bot {
-  constructor({ game, next, playerID }) {
-    super({ next, playerID });
+  constructor({ game, next, playerID, seed }) {
+    super({ next, playerID, seed });
     this.id = 0;
     this.reducer = createGameReducer({ game });
   }
@@ -116,7 +145,7 @@ export class MCTSBot extends Bot {
       return node;
     }
 
-    const id = Math.floor(Math.random() * actions.length);
+    const id = this.random(actions.length);
     const action = actions[id];
     node.actions.splice(id, 1);
     const childState = this.reducer(node.state, action);
@@ -131,7 +160,7 @@ export class MCTSBot extends Bot {
     while (state.ctx.gameover === undefined) {
       const { G, ctx } = state;
       const moves = this.next(G, ctx, ctx.actionPlayers[0]);
-      const id = Math.floor(Math.random() * moves.length);
+      const id = this.random(moves.length);
       const childState = this.reducer(state, moves[id]);
       state = childState;
     }
@@ -141,6 +170,8 @@ export class MCTSBot extends Bot {
 
   backpropagate(node, result, rootPlayer) {
     node.n++;
+
+    // const nodePlayer = node.state.ctx.currentPlayer;
 
     if (result.winner === rootPlayer) {
       node.w++;

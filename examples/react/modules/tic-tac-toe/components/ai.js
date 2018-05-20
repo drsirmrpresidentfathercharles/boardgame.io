@@ -66,13 +66,12 @@ class AI extends React.Component {
   render() {
     return (
       <div style={{ padding: 50 }}>
-        <div>
+        <div style={{ marginBottom: '20px' }}>
           <button onClick={this.simulate}>Simulate</button>
           <button onClick={this.step}>Step</button>
         </div>
 
         <section style={{ float: 'left' }}>
-          <h1>Board State</h1>
           <Board
             isPreview={true}
             G={this.state.gameState.G}
