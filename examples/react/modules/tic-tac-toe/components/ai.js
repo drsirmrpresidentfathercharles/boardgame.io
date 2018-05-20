@@ -19,9 +19,13 @@ class AI extends React.Component {
     super(props);
 
     this.reducer = createGameReducer({ game: TicTacToe });
-    this.state = { gameState: this.reducer(undefined, { type: 'init' }) };
+    this.state = {
+      iterations: 1000,
+      seed: 'tictac',
+      gameState: this.reducer(undefined, { type: 'init' }),
+    };
 
-    const next = (G, ctx, playerID) => {
+    this.next = (G, ctx, playerID) => {
       let r = [];
       for (let i = 0; i < 9; i++) {
         if (G.cells[i] === null) {
@@ -31,23 +35,32 @@ class AI extends React.Component {
       return r;
     };
 
+    this.reset();
+  }
+
+  reset = () => {
     this.bots = {
       '0': new MCTSBot({
-        iterations: 2000,
-        seed: '9',
+        iterations: this.state.iterations,
+        seed: this.state.seed,
         game: TicTacToe,
-        next,
+        next: this.next,
         playerID: '0',
       }),
       '1': new MCTSBot({
-        iterations: 2000,
-        seed: '9',
+        iterations: this.state.iterations,
+        seed: this.state.seed,
         game: TicTacToe,
-        next,
+        next: this.next,
         playerID: '1',
       }),
     };
-  }
+
+    this.setState({
+      gameState: this.reducer(undefined, { type: 'init' }),
+      root: null,
+    });
+  };
 
   simulate = () => {
     const endState = Simulate({
@@ -67,6 +80,34 @@ class AI extends React.Component {
     this.setState({ gameState: state, root });
   };
 
+  onIterationChange = e => {
+    const iterations = parseInt(e.target.value);
+    this.bots['0'].iterations = iterations;
+    this.bots['1'].iterations = iterations;
+    this.setState({ iterations });
+  };
+
+  onSeedChange = e => {
+    const seed = parseInt(e.target.value);
+    this.bots = {
+      '0': new MCTSBot({
+        iterations: this.state.iterations,
+        seed,
+        game: TicTacToe,
+        next: this.next,
+        playerID: '0',
+      }),
+      '1': new MCTSBot({
+        iterations: this.state.iterations,
+        seed,
+        game: TicTacToe,
+        next: this.next,
+        playerID: '1',
+      }),
+    };
+    this.setState({ seed });
+  };
+
   clickCell = id => {
     const nextState = this.reducer(
       this.state.gameState,
@@ -79,8 +120,29 @@ class AI extends React.Component {
     return (
       <div style={{ padding: 50 }}>
         <div style={{ marginBottom: '20px' }}>
+          <div>
+            <label>MCTS Iterations</label>
+            <input
+              onChange={this.onIterationChange}
+              type="text"
+              style={{ width: 50, marginLeft: 20 }}
+              value={this.state.iterations}
+            />
+          </div>
+
+          <div>
+            <label>Seed</label>
+            <input
+              onChange={this.onSeedChange}
+              type="text"
+              style={{ width: 50, marginLeft: 86 }}
+              value={this.state.seed}
+            />
+          </div>
+
           <button onClick={this.simulate}>Simulate</button>
           <button onClick={this.step}>Step</button>
+          <button onClick={this.reset}>Reset</button>
         </div>
 
         <section style={{ float: 'left' }}>
