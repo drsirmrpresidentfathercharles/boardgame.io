@@ -19,7 +19,7 @@ class AI extends React.Component {
     super(props);
 
     this.reducer = createGameReducer({ game: TicTacToe });
-    this.state = this.reducer(undefined, { type: 'init' });
+    this.state = { gameState: this.reducer(undefined, { type: 'init' }) };
 
     const next = (G, ctx, playerID) => {
       let r = [];
@@ -41,18 +41,26 @@ class AI extends React.Component {
     const endState = Simulate({
       game: TicTacToe,
       bots: this.bots,
-      state: this.state,
+      state: this.state.gameState,
     });
-    this.setState({ ...endState });
+    this.setState({ gameState: endState, root: null });
   };
 
   step = () => {
     const { state, root } = Step({
       game: TicTacToe,
       bots: this.bots,
-      state: this.state,
+      state: this.state.gameState,
     });
-    this.setState({ ...state, root });
+    this.setState({ gameState: state, root });
+  };
+
+  clickCell = id => {
+    const nextState = this.reducer(
+      this.state.gameState,
+      makeMove('clickCell', [id])
+    );
+    this.setState({ gameState: nextState, root: null });
   };
 
   render() {
@@ -67,9 +75,10 @@ class AI extends React.Component {
           <h1>Board State</h1>
           <Board
             isPreview={true}
-            G={this.state.G}
-            ctx={this.state.ctx}
-            moves={{}}
+            G={this.state.gameState.G}
+            ctx={this.state.gameState.ctx}
+            isActive={true}
+            moves={{ clickCell: this.clickCell }}
           />
         </section>
 
