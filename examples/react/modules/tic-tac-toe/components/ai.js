@@ -32,8 +32,20 @@ class AI extends React.Component {
     };
 
     this.bots = {
-      '0': new MCTSBot({ seed: 'test', game: TicTacToe, next, playerID: '0' }),
-      '1': new MCTSBot({ seed: 'test', game: TicTacToe, next, playerID: '1' }),
+      '0': new MCTSBot({
+        iterations: 2000,
+        seed: '9',
+        game: TicTacToe,
+        next,
+        playerID: '0',
+      }),
+      '1': new MCTSBot({
+        iterations: 2000,
+        seed: '9',
+        game: TicTacToe,
+        next,
+        playerID: '1',
+      }),
     };
   }
 

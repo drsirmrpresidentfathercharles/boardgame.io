@@ -52,10 +52,11 @@ export class Bot {
     let number;
 
     if (this.seed) {
-      let r = new alea(this.seed, { state: true });
-
+      let r = null;
       if (this.prngstate) {
         r = new alea('', { state: this.prngstate });
+      } else {
+        r = new alea(this.seed, { state: true });
       }
 
       number = r();
@@ -85,9 +86,10 @@ export class RandomBot extends Bot {
 }
 
 export class MCTSBot extends Bot {
-  constructor({ game, next, playerID, seed }) {
+  constructor({ game, next, playerID, seed, iterations }) {
     super({ next, playerID, seed });
     this.id = 0;
+    this.iterations = iterations || 500;
     this.reducer = createGameReducer({ game });
   }
 
@@ -172,17 +174,17 @@ export class MCTSBot extends Bot {
   backpropagate(node, result, rootPlayer) {
     node.n++;
 
-    // const nodePlayer = node.state.ctx.currentPlayer;
-
-    if (result.winner === rootPlayer) {
-      node.w++;
-    }
-
     if (result.draw === true) {
-      node.w++;
+      node.w += 0.5;
     }
 
     if (node.parent) {
+      let playerJustMoved = node.parent.state.ctx.currentPlayer;
+
+      if (result.winner === playerJustMoved) {
+        node.w++;
+      }
+
       this.backpropagate(node.parent, result, rootPlayer);
     }
   }
@@ -191,7 +193,7 @@ export class MCTSBot extends Bot {
     const root = this.createNode(state);
     const rootPlayer = root.state.ctx.currentPlayer;
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < this.iterations; i++) {
       const leaf = this.select(root);
       const child = this.expand(leaf);
       const result = this.playout(child);
@@ -199,11 +201,8 @@ export class MCTSBot extends Bot {
     }
 
     let selectedChild = null;
-    let scores = {};
     for (const child of root.children) {
-      const ratio = child.w / child.n;
-      scores[child.move.payload.args] = ratio;
-      if (selectedChild == null || ratio > selectedChild.w / selectedChild.n) {
+      if (selectedChild == null || child.n > selectedChild.n) {
         selectedChild = child;
       }
     }

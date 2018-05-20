@@ -78,58 +78,44 @@ const next = (G, ctx, playerID) => {
   return r;
 };
 
-test('RandomBot', () => {
-  const bots = {
-    '0': new RandomBot({ next, playerID: '0' }),
-    '1': new RandomBot({ next, playerID: '1' }),
-  };
-
-  const reducer = createGameReducer({ game: TicTacToe });
-  const state = reducer(undefined, { type: 'init' });
-  const endState = Simulate({ game: TicTacToe, bots, state });
-
-  expect(endState.G.cells).toEqual([
-    '0',
-    '1',
-    '0',
-    '1',
-    '0',
-    '1',
-    '0',
-    null,
-    null,
-  ]);
-  expect(endState.ctx.gameover).toEqual({ winner: '0' });
-});
-
 test('RandomBot vs. MCTSBot', () => {
   const bots = {
-    '0': new RandomBot({ next, playerID: '0' }),
-    '1': new MCTSBot({ game: TicTacToe, next, playerID: '1' }),
+    '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
+    '1': new MCTSBot({ seed: 'test', game: TicTacToe, next, playerID: '1' }),
   };
 
   const reducer = createGameReducer({ game: TicTacToe });
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 5; i++) {
     const state = reducer(undefined, { type: 'init' });
     const endState = Simulate({ game: TicTacToe, bots, state });
-    console.log(endState.ctx.gameover);
     expect(endState.ctx.gameover).not.toEqual({ winner: '0' });
   }
 });
 
-test.only('MCTSBot vs. MCTSBot', () => {
-  const bots = {
-    '0': new MCTSBot({ game: TicTacToe, next, playerID: '0' }),
-    '1': new MCTSBot({ game: TicTacToe, next, playerID: '1' }),
-  };
-
+test('MCTSBot vs. MCTSBot', () => {
   const reducer = createGameReducer({ game: TicTacToe });
+  const iterations = 1000;
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 5; i++) {
+    const bots = {
+      '0': new MCTSBot({
+        seed: i,
+        game: TicTacToe,
+        next,
+        playerID: '0',
+        iterations,
+      }),
+      '1': new MCTSBot({
+        seed: i,
+        game: TicTacToe,
+        next,
+        playerID: '1',
+        iterations,
+      }),
+    };
     const state = reducer(undefined, { type: 'init' });
     const endState = Simulate({ game: TicTacToe, bots, state });
-    console.log(endState.ctx.gameover);
     expect(endState.ctx.gameover).toEqual({ draw: true });
   }
 });
