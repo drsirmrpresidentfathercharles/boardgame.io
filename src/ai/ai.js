@@ -58,6 +58,7 @@ export class Bot {
         r = new alea('', { state: this.prngstate });
       }
 
+      number = r();
       this.prngstate = r.state();
     } else {
       number = Math.random();
