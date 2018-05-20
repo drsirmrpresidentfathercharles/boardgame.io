@@ -63,7 +63,7 @@ class AI extends React.Component {
           <button onClick={this.step}>Step</button>
         </div>
 
-        <section>
+        <section style={{ float: 'left' }}>
           <h1>Board State</h1>
           <Board
             isPreview={true}
@@ -74,12 +74,14 @@ class AI extends React.Component {
         </section>
 
         {this.state.root && (
-          <section>
-            <h1>Why was this move chosen?</h1>
+          <section style={{ width: '1000px', float: 'right' }}>
+            <h1 style={{ textAlign: 'center' }}>MCTS tree</h1>
             <MCTSDebug
               root={this.state.root}
               renderState={state => (
-                <Board {...state} isPreview={true} moves={{}} />
+                <div style={{ transform: 'scale(0.7)' }}>
+                  <Board {...state} isPreview={true} moves={{}} />
+                </div>
               )}
             />
           </section>

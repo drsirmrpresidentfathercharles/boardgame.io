@@ -11,6 +11,7 @@ export class MCTSDebug extends React.Component {
   static propTypes = {
     root: PropTypes.any.isRequired,
     renderState: PropTypes.func,
+    style: PropTypes.any,
   };
 
   componentWillReceiveProps(nextProps) {
@@ -41,7 +42,7 @@ export class MCTSDebug extends React.Component {
     );
 
     return (
-      <div className="mcts-tree">
+      <div className="mcts-tree" style={this.props.style}>
         {parent}
         <MCTSNode
           {...root}

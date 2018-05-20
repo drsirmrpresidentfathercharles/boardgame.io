@@ -30,6 +30,7 @@
 }
 
 .mcts-root {
+  margin-top: 20px;
   cursor: default;
   background: #ddd;
   border: 2px solid #aaa;
