@@ -9,111 +9,84 @@
 import Game from '../core/game';
 import { createGameReducer } from '../core/reducer';
 import { makeMove } from '../core/action-creators';
-import { Simulate } from './ai';
+import { Simulate, RandomBot, MCTSBot } from './ai';
 
-test('next', () => {
-  const game = Game({
-    moves: {
-      A: () => ({ next: 'A' }),
-      B: () => ({ next: 'B' }),
+function IsVictory(cells) {
+  const positions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+
+  for (let pos of positions) {
+    const symbol = cells[pos[0]];
+    let winner = symbol;
+    for (let i of pos) {
+      if (cells[i] != symbol) {
+        winner = null;
+        break;
+      }
+    }
+    if (winner != null) return true;
+  }
+
+  return false;
+}
+
+const TicTacToe = Game({
+  setup: () => ({
+    cells: Array(9).fill(null),
+  }),
+
+  moves: {
+    clickCell(G, ctx, id) {
+      const cells = [...G.cells];
+      if (cells[id] === null) {
+        cells[id] = ctx.currentPlayer;
+      }
+      return { ...G, cells };
     },
-  });
+  },
 
-  const ai = {
-    next: G => [{ move: G.next, args: [] }],
-  };
+  flow: {
+    movesPerTurn: 1,
 
-  const reducer = createGameReducer({ game, numPlayers: 2 });
+    endGameIf: (G, ctx) => {
+      if (IsVictory(G.cells)) {
+        return { winner: ctx.currentPlayer };
+      }
 
-  let state = reducer(undefined, { type: 'init' });
-
-  {
-    state = reducer(state, makeMove('A'));
-    const moves = ai.next(state.G, state.ctx);
-    expect(moves.length).toBe(1);
-    expect(moves[0].move).toBe('A');
-    expect(moves[0].args).toEqual([]);
-  }
-
-  {
-    state = reducer(state, makeMove('B'));
-    const moves = ai.next(state.G, state.ctx);
-    expect(moves.length).toBe(1);
-    expect(moves[0].move).toBe('B');
-    expect(moves[0].args).toEqual([]);
-  }
+      if (G.cells.filter(t => t == null).length == 0) {
+        return { draw: true };
+      }
+    },
+  },
 });
 
-test('Simulate', () => {
-  function IsVictory(cells) {
-    const positions = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-
-    for (let pos of positions) {
-      const symbol = cells[pos[0]];
-      let winner = symbol;
-      for (let i of pos) {
-        if (cells[i] != symbol) {
-          winner = null;
-          break;
-        }
-      }
-      if (winner != null) return true;
+const next = (G, ctx, playerID) => {
+  let r = [];
+  for (let i = 0; i < 9; i++) {
+    if (G.cells[i] === null) {
+      r.push(makeMove('clickCell', i, playerID));
     }
-
-    return false;
   }
+  return r;
+};
 
-  const TicTacToe = Game({
-    setup: () => ({
-      cells: Array(9).fill(null),
-    }),
-
-    moves: {
-      clickCell(G, ctx, id) {
-        const cells = [...G.cells];
-        if (cells[id] === null) {
-          cells[id] = ctx.currentPlayer;
-        }
-        return { ...G, cells };
-      },
-    },
-
-    flow: {
-      movesPerTurn: 1,
-
-      endGameIf: (G, ctx) => {
-        if (IsVictory(G.cells)) {
-          return ctx.currentPlayer;
-        }
-      },
-    },
-  });
-
-  const ai = {
-    next: G => {
-      let r = [];
-      for (let i = 0; i < 9; i++) {
-        if (G.cells[i] === null) {
-          r.push({ move: 'clickCell', args: [i] });
-        }
-      }
-      return r;
-    },
+test('RandomBot', () => {
+  const bots = {
+    '0': new RandomBot({ next, playerID: '0' }),
+    '1': new RandomBot({ next, playerID: '1' }),
   };
 
-  const numPlayers = 2;
-  const reducer = createGameReducer({ game: TicTacToe, numPlayers });
+  const reducer = createGameReducer({ game: TicTacToe });
   const state = reducer(undefined, { type: 'init' });
-  const endState = Simulate({ game: TicTacToe, ai, numPlayers, state });
+  const endState = Simulate({ game: TicTacToe, bots, state });
 
   expect(endState.G.cells).toEqual([
     '0',
@@ -126,5 +99,37 @@ test('Simulate', () => {
     null,
     null,
   ]);
-  expect(endState.ctx.gameover).not.toBe(undefined);
+  expect(endState.ctx.gameover).toEqual({ winner: '0' });
+});
+
+test('RandomBot vs. MCTSBot', () => {
+  const bots = {
+    '0': new RandomBot({ next, playerID: '0' }),
+    '1': new MCTSBot({ game: TicTacToe, next, playerID: '1' }),
+  };
+
+  const reducer = createGameReducer({ game: TicTacToe });
+
+  for (let i = 0; i < 20; i++) {
+    const state = reducer(undefined, { type: 'init' });
+    const endState = Simulate({ game: TicTacToe, bots, state });
+    console.log(endState.ctx.gameover);
+    expect(endState.ctx.gameover).not.toEqual({ winner: '0' });
+  }
+});
+
+test.only('MCTSBot vs. MCTSBot', () => {
+  const bots = {
+    '0': new MCTSBot({ game: TicTacToe, next, playerID: '0' }),
+    '1': new MCTSBot({ game: TicTacToe, next, playerID: '1' }),
+  };
+
+  const reducer = createGameReducer({ game: TicTacToe });
+
+  for (let i = 0; i < 20; i++) {
+    const state = reducer(undefined, { type: 'init' });
+    const endState = Simulate({ game: TicTacToe, bots, state });
+    console.log(endState.ctx.gameover);
+    expect(endState.ctx.gameover).toEqual({ draw: true });
+  }
 });
