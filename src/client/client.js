@@ -138,6 +138,10 @@ class _ClientImpl {
       }
     }
 
+    if (state.ctx.gameover !== undefined) {
+      isActive = false;
+    }
+
     // Secrets are normally stripped on the server,
     // but we also strip them here so that game developers
     // can see their effects while prototyping.
@@ -147,12 +151,7 @@ class _ClientImpl {
     }
     const G = this.game.playerView(state.G, state.ctx, playerID);
 
-    if (state.ctx.gameover !== undefined) {
-      isActive = false;
-    }
-
     // Combine into return value.
-
     let ret = { ...state, isActive, G };
 
     if (this.multiplayerClient) {

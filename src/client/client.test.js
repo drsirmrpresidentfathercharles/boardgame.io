@@ -24,9 +24,29 @@ test('move api', () => {
     }),
   });
 
-  expect(client.store.getState().G).toEqual({});
+  expect(client.getState().G).toEqual({});
   client.moves.A(42);
-  expect(client.store.getState().G).toEqual({ arg: 42 });
+  expect(client.getState().G).toEqual({ arg: 42 });
+});
+
+test('isActive', () => {
+  const client = Client({
+    game: Game({
+      moves: {
+        A: (G, ctx, arg) => ({ arg }),
+      },
+
+      flow: {
+        endGameIf: G => G.arg == 42,
+      },
+    }),
+  });
+
+  expect(client.getState().G).toEqual({});
+  expect(client.getState().isActive).toBe(true);
+  client.moves.A(42);
+  expect(client.getState().G).toEqual({ arg: 42 });
+  expect(client.getState().isActive).toBe(false);
 });
 
 test('multiplayer server set when provided', () => {
