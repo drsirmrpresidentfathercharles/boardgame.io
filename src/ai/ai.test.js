@@ -81,7 +81,13 @@ const next = (G, ctx, playerID) => {
 test('RandomBot vs. MCTSBot', () => {
   const bots = {
     '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
-    '1': new MCTSBot({ seed: 'test', game: TicTacToe, next, playerID: '1' }),
+    '1': new MCTSBot({
+      iterations: 200,
+      seed: 'test',
+      game: TicTacToe,
+      next,
+      playerID: '1',
+    }),
   };
 
   const reducer = createGameReducer({ game: TicTacToe });
@@ -95,7 +101,7 @@ test('RandomBot vs. MCTSBot', () => {
 
 test('MCTSBot vs. MCTSBot', () => {
   const reducer = createGameReducer({ game: TicTacToe });
-  const iterations = 1000;
+  const iterations = 500;
 
   for (let i = 0; i < 5; i++) {
     const bots = {

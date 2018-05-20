@@ -20,7 +20,7 @@ class AI extends React.Component {
 
     this.reducer = createGameReducer({ game: TicTacToe });
     this.state = {
-      iterations: 1000,
+      iterations: 500,
       seed: 'tictac',
       gameState: this.reducer(undefined, { type: 'init' }),
     };
@@ -91,7 +91,7 @@ class AI extends React.Component {
   };
 
   onSeedChange = e => {
-    const seed = parseInt(e.target.value);
+    const seed = e.target.value;
     this.setState({ seed }, this.createBots);
   };
 
