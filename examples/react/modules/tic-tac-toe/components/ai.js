@@ -35,10 +35,10 @@ class AI extends React.Component {
       return r;
     };
 
-    this.reset();
+    this.createBots();
   }
 
-  reset = () => {
+  createBots = () => {
     this.bots = {
       '0': new MCTSBot({
         iterations: this.state.iterations,
@@ -55,7 +55,10 @@ class AI extends React.Component {
         playerID: '1',
       }),
     };
+  };
 
+  reset = () => {
+    this.createBots();
     this.setState({
       gameState: this.reducer(undefined, { type: 'init' }),
       root: null,
@@ -89,23 +92,7 @@ class AI extends React.Component {
 
   onSeedChange = e => {
     const seed = parseInt(e.target.value);
-    this.bots = {
-      '0': new MCTSBot({
-        iterations: this.state.iterations,
-        seed,
-        game: TicTacToe,
-        next: this.next,
-        playerID: '0',
-      }),
-      '1': new MCTSBot({
-        iterations: this.state.iterations,
-        seed,
-        game: TicTacToe,
-        next: this.next,
-        playerID: '1',
-      }),
-    };
-    this.setState({ seed });
+    this.setState({ seed }, this.createBots);
   };
 
   clickCell = id => {
