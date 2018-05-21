@@ -19,15 +19,19 @@ import { alea } from '../core/random.alea';
 export function Simulate({ game, bots, state }) {
   const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
 
-  let t = state;
-  while (t.ctx.gameover === undefined && t.ctx.actionPlayers.length > 0) {
-    const playerID = t.ctx.actionPlayers[0];
+  let metadata = null;
+  while (
+    state.ctx.gameover === undefined &&
+    state.ctx.actionPlayers.length > 0
+  ) {
+    const playerID = state.ctx.actionPlayers[0];
     const bot = bots[playerID];
-    const { action } = bot.play(t);
-    t = reducer(t, action);
+    const t = bot.play(state);
+    metadata = t.metadata;
+    state = reducer(state, t.action);
   }
 
-  return t;
+  return { state, metadata };
 }
 
 /**
@@ -40,17 +44,16 @@ export function Simulate({ game, bots, state }) {
 export function Step({ game, bots, state }) {
   const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
 
-  let t = state;
-  let tr = null;
-  if (t.ctx.gameover === undefined && t.ctx.actionPlayers.length > 0) {
-    const playerID = t.ctx.actionPlayers[0];
+  let metadata = null;
+  if (state.ctx.gameover === undefined && state.ctx.actionPlayers.length > 0) {
+    const playerID = state.ctx.actionPlayers[0];
     const bot = bots[playerID];
-    const { action, root } = bot.play(t);
-    tr = root;
-    t = reducer(t, action);
+    const t = bot.play(state);
+    metadata = t.metadata;
+    state = reducer(state, t.action);
   }
 
-  return { state: t, root: tr };
+  return { state, metadata };
 }
 
 export class Bot {
@@ -220,6 +223,9 @@ export class MCTSBot extends Bot {
       }
     }
 
-    return { action: selectedChild.move, root };
+    return {
+      action: selectedChild.move,
+      metadata: root,
+    };
   }
 }

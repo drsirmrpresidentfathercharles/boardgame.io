@@ -66,21 +66,21 @@ class AI extends React.Component {
   };
 
   simulate = () => {
-    const endState = Simulate({
+    const { state: gameState } = Simulate({
       game: TicTacToe,
       bots: this.bots,
       state: this.state.gameState,
     });
-    this.setState({ gameState: endState, root: null });
+    this.setState({ gameState, root: null });
   };
 
   step = () => {
-    const { state, root } = Step({
+    const { state: gameState, metadata: root } = Step({
       game: TicTacToe,
       bots: this.bots,
       state: this.state.gameState,
     });
-    this.setState({ gameState: state, root });
+    this.setState({ gameState, root });
   };
 
   onIterationChange = e => {

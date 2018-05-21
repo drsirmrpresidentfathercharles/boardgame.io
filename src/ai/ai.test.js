@@ -94,7 +94,7 @@ test('RandomBot vs. MCTSBot', () => {
 
   for (let i = 0; i < 5; i++) {
     const state = reducer(undefined, { type: 'init' });
-    const endState = Simulate({ game: TicTacToe, bots, state });
+    const { state: endState } = Simulate({ game: TicTacToe, bots, state });
     expect(endState.ctx.gameover).not.toEqual({ winner: '0' });
   }
 });
@@ -121,7 +121,7 @@ test('MCTSBot vs. MCTSBot', () => {
       }),
     };
     const state = reducer(undefined, { type: 'init' });
-    const endState = Simulate({ game: TicTacToe, bots, state });
+    const { state: endState } = Simulate({ game: TicTacToe, bots, state });
     expect(endState.ctx.gameover).toEqual({ draw: true });
   }
 });
