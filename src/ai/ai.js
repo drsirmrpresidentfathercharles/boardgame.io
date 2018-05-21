@@ -9,8 +9,13 @@
 import { createGameReducer } from '../core/reducer';
 import { alea } from '../core/random.alea';
 
-// Initial implementation that just takes the first move
-// and simulates till the end of the game.
+/**
+ * Simulates the game till the end.
+ *
+ * @param {...object} game - The game object.
+ * @param {...object} bots - An array of bots.
+ * @param {...object} state - The game state to start from.
+ */
 export function Simulate({ game, bots, state }) {
   const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
 
@@ -25,6 +30,13 @@ export function Simulate({ game, bots, state }) {
   return t;
 }
 
+/**
+ * Steps forward one move.
+ *
+ * @param {...object} game - The game object.
+ * @param {...object} bots - An array of bots.
+ * @param {...object} state - The game state to start from.
+ */
 export function Step({ game, bots, state }) {
   const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
 
@@ -95,7 +107,10 @@ export class MCTSBot extends Bot {
 
   createNode(state, move, parent) {
     const { G, ctx } = state;
-    const actions = this.next(G, ctx, ctx.actionPlayers[0]);
+    let actions = [];
+    for (let playerID of ctx.actionPlayers) {
+      actions = actions.concat(this.next(G, ctx, playerID));
+    }
 
     return {
       // Game state at this node.
