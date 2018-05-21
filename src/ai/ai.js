@@ -103,7 +103,6 @@ export class RandomBot extends Bot {
 export class MCTSBot extends Bot {
   constructor({ game, next, playerID, seed, iterations }) {
     super({ next, playerID, seed });
-    this.id = 0;
     this.iterations = iterations || 500;
     this.reducer = createGameReducer({ game });
   }

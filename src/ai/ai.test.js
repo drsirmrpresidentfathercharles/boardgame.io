@@ -9,7 +9,7 @@
 import Game from '../core/game';
 import { createGameReducer } from '../core/reducer';
 import { makeMove } from '../core/action-creators';
-import { Simulate, RandomBot, MCTSBot } from './ai';
+import { Simulate, Step, Bot, RandomBot, MCTSBot } from './ai';
 
 function IsVictory(cells) {
   const positions = [
@@ -78,50 +78,93 @@ const next = (G, ctx, playerID) => {
   return r;
 };
 
-test('RandomBot vs. MCTSBot', () => {
+test('Simulate', () => {
   const bots = {
     '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
-    '1': new MCTSBot({
-      iterations: 200,
-      seed: 'test',
-      game: TicTacToe,
-      next,
-      playerID: '1',
-    }),
+    '1': new RandomBot({ seed: 'test', next, playerID: '1' }),
   };
-
   const reducer = createGameReducer({ game: TicTacToe });
-
-  for (let i = 0; i < 5; i++) {
-    const state = reducer(undefined, { type: 'init' });
-    const { state: endState } = Simulate({ game: TicTacToe, bots, state });
-    expect(endState.ctx.gameover).not.toEqual({ winner: '0' });
-  }
+  const state = reducer(undefined, { type: 'init' });
+  const { state: endState } = Simulate({ game: TicTacToe, bots, state });
+  expect(endState.ctx.gameover).not.toBe(undefined);
 });
 
-test('MCTSBot vs. MCTSBot', () => {
+test('Step', () => {
+  const bots = {
+    '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
+    '1': new RandomBot({ seed: 'test', next, playerID: '1' }),
+  };
   const reducer = createGameReducer({ game: TicTacToe });
-  const iterations = 600;
+  let state = reducer(undefined, { type: 'init' });
+  const { state: endState } = Step({ game: TicTacToe, bots, state });
+  expect(endState.G.cells.filter(t => t !== null).length).toBe(1);
+  expect(endState.ctx.gameover).toBe(undefined);
 
-  for (let i = 0; i < 5; i++) {
+  state.G.cells = new Array(9).fill('0');
+  state.G.cells[0] = null;
+  state = Step({ game: TicTacToe, bots, state }).state;
+  expect(state.ctx.gameover).not.toBe(undefined);
+  state = Step({ game: TicTacToe, bots, state }).state;
+  expect(state.ctx.gameover).not.toBe(undefined);
+});
+
+test('Bot', () => {
+  const b = new Bot({});
+  expect(b.random()).toBeGreaterThanOrEqual(0);
+  expect(b.random()).toBeLessThan(1);
+});
+
+describe('MCTSBot', () => {
+  test('defaults', () => {
+    const b = new MCTSBot({ game: TicTacToe });
+    expect(b.iterations).toBe(500);
+  });
+
+  test('RandomBot vs. MCTSBot', () => {
     const bots = {
-      '0': new MCTSBot({
-        seed: i,
-        game: TicTacToe,
-        next,
-        playerID: '0',
-        iterations,
-      }),
+      '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
       '1': new MCTSBot({
-        seed: i,
+        iterations: 200,
+        seed: 'test',
         game: TicTacToe,
         next,
         playerID: '1',
-        iterations,
       }),
     };
-    const state = reducer(undefined, { type: 'init' });
-    const { state: endState } = Simulate({ game: TicTacToe, bots, state });
-    expect(endState.ctx.gameover).toEqual({ draw: true });
-  }
+
+    const reducer = createGameReducer({ game: TicTacToe });
+
+    for (let i = 0; i < 5; i++) {
+      const state = reducer(undefined, { type: 'init' });
+      const { state: endState } = Simulate({ game: TicTacToe, bots, state });
+      expect(endState.ctx.gameover).not.toEqual({ winner: '0' });
+    }
+  });
+
+  test('MCTSBot vs. MCTSBot', () => {
+    const reducer = createGameReducer({ game: TicTacToe });
+    const iterations = 400;
+
+    for (let i = 0; i < 5; i++) {
+      const bots = {
+        '0': new MCTSBot({
+          seed: i,
+          game: TicTacToe,
+          next,
+          playerID: '0',
+          iterations,
+        }),
+        '1': new MCTSBot({
+          seed: i,
+          game: TicTacToe,
+          next,
+          playerID: '1',
+          iterations,
+        }),
+      };
+      const state = reducer(undefined, { type: 'init' });
+      const { state: endState } = Simulate({ game: TicTacToe, bots, state });
+      expect(endState.ctx.gameover).toEqual({ draw: true });
+    }
+  });
 });
