@@ -170,33 +170,30 @@ export class MCTSBot extends Bot {
     return state.ctx.gameover;
   }
 
-  backpropagate(node, result, rootPlayer) {
+  backpropagate(node, result) {
     node.n++;
 
     if (result.draw === true) {
       node.w += 0.5;
     }
 
+    if (node.move && result.winner === node.move.payload.playerID) {
+      node.w++;
+    }
+
     if (node.parent) {
-      let playerJustMoved = node.parent.state.ctx.currentPlayer;
-
-      if (result.winner === playerJustMoved) {
-        node.w++;
-      }
-
-      this.backpropagate(node.parent, result, rootPlayer);
+      this.backpropagate(node.parent, result);
     }
   }
 
   play(state) {
     const root = this.createNode(state);
-    const rootPlayer = root.state.ctx.currentPlayer;
 
     for (let i = 0; i < this.iterations; i++) {
       const leaf = this.select(root);
       const child = this.expand(leaf);
       const result = this.playout(child);
-      this.backpropagate(child, result, rootPlayer);
+      this.backpropagate(child, result);
     }
 
     let selectedChild = null;
