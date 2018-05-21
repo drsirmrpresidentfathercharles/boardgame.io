@@ -63,7 +63,7 @@ export class Bot {
   random(arg) {
     let number;
 
-    if (this.seed) {
+    if (this.seed !== undefined) {
       let r = null;
       if (this.prngstate) {
         r = new alea('', { state: this.prngstate });

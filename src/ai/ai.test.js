@@ -101,7 +101,7 @@ test('RandomBot vs. MCTSBot', () => {
 
 test('MCTSBot vs. MCTSBot', () => {
   const reducer = createGameReducer({ game: TicTacToe });
-  const iterations = 500;
+  const iterations = 600;
 
   for (let i = 0; i < 5; i++) {
     const bots = {
