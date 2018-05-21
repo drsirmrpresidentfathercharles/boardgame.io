@@ -124,9 +124,9 @@ export class MCTSBot extends Bot {
       // Parent of the node.
       parent,
       // Number of simulations that pass through this node.
-      n: 0,
+      visits: 0,
       // Number of wins for this node.
-      w: 0,
+      value: 0,
     };
   }
 
@@ -145,7 +145,9 @@ export class MCTSBot extends Bot {
     let best = 0.0;
 
     for (const child of node.children) {
-      const uct = child.w / child.n + Math.sqrt(2 * Math.log(node.n) / child.n);
+      const uct =
+        child.value / child.visits +
+        Math.sqrt(2 * Math.log(node.visits) / child.visits);
       if (selectedChild == null || uct > best) {
         best = uct;
         selectedChild = child;
@@ -186,14 +188,14 @@ export class MCTSBot extends Bot {
   }
 
   backpropagate(node, result) {
-    node.n++;
+    node.visits++;
 
     if (result.draw === true) {
-      node.w += 0.5;
+      node.value += 0.5;
     }
 
     if (node.move && result.winner === node.move.payload.playerID) {
-      node.w++;
+      node.value++;
     }
 
     if (node.parent) {
@@ -213,7 +215,7 @@ export class MCTSBot extends Bot {
 
     let selectedChild = null;
     for (const child of root.children) {
-      if (selectedChild == null || child.n > selectedChild.n) {
+      if (selectedChild == null || child.visits > selectedChild.visits) {
         selectedChild = child;
       }
     }
