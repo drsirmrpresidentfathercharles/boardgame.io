@@ -28,7 +28,7 @@ export class MCTSDebug extends React.Component {
           onClick={() => this.setState({ root: child })}
           renderState={this.props.renderState}
           {...child}
-          pn={root.n}
+          parentVisits={root.visits}
         />
       );
     });
@@ -55,25 +55,33 @@ export class MCTSDebug extends React.Component {
   }
 }
 
-const MCTSNode = ({ state, w, n, pn, renderState, onClick, isRoot }) => {
+export const MCTSNode = ({
+  state,
+  value,
+  visits,
+  parentVisits,
+  renderState,
+  onClick,
+  isRoot,
+}) => {
   let classes = 'mcts-node';
   if (isRoot) {
     classes += ' mcts-root';
   }
 
-  let uct = w / n + 1.41 * Math.sqrt(Math.log(pn) / n);
-  let ratio = w / n;
+  let uct = value / visits + Math.sqrt(2 * Math.log(parentVisits) / visits);
+  let ratio = value / visits;
   uct = Math.floor(100 * uct);
   ratio = Math.floor(100 * ratio);
 
-  if (!pn) uct = null;
+  if (!parentVisits) uct = null;
 
   return (
     <div className={classes} onClick={onClick}>
       <li>ratio {ratio}</li>
-      {uct && <li>UCT {uct}</li>}
-      <li>w {w}</li>
-      <li>n {n}</li>
+      {uct && <li>uct {uct}</li>}
+      <li>value {value}</li>
+      <li>visits {visits}</li>
 
       {renderState && renderState(state)}
     </div>
@@ -83,9 +91,9 @@ const MCTSNode = ({ state, w, n, pn, renderState, onClick, isRoot }) => {
 MCTSNode.propTypes = {
   state: PropTypes.any,
   renderState: PropTypes.func,
-  w: PropTypes.any,
-  n: PropTypes.any,
-  pn: PropTypes.any,
+  value: PropTypes.any,
+  visits: PropTypes.any,
+  parentVisits: PropTypes.any,
   isRoot: PropTypes.any,
   onClick: PropTypes.any,
 };
