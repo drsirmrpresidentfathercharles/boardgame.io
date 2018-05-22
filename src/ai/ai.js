@@ -10,25 +10,34 @@ import { createGameReducer } from '../core/reducer';
 import { alea } from '../core/random.alea';
 
 /**
- * Simulates the game till the end.
+ * Simulates the game till the end or a max depth.
  *
  * @param {...object} game - The game object.
  * @param {...object} bots - An array of bots.
  * @param {...object} state - The game state to start from.
  */
-export function Simulate({ game, bots, state }) {
+export function Simulate({ game, bots, state, depth }) {
+  if (depth === undefined) depth = 10000;
   const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
 
   let metadata = null;
+  let iter = 0;
   while (
     state.ctx.gameover === undefined &&
-    state.ctx.actionPlayers.length > 0
+    state.ctx.actionPlayers.length > 0 &&
+    iter < depth
   ) {
     const playerID = state.ctx.actionPlayers[0];
-    const bot = bots[playerID];
-    const t = bot.play(state);
+    const bot = bots instanceof Bot ? bots : bots[playerID];
+    const t = bot.play(state, playerID);
+
+    if (!t.action) {
+      break;
+    }
+
     metadata = t.metadata;
     state = reducer(state, t.action);
+    iter++;
   }
 
   return { state, metadata };
@@ -47,7 +56,7 @@ export function Step({ game, bots, state }) {
   let metadata = null;
   if (state.ctx.gameover === undefined && state.ctx.actionPlayers.length > 0) {
     const playerID = state.ctx.actionPlayers[0];
-    const bot = bots[playerID];
+    const bot = bots instanceof Bot ? bots : bots[playerID];
     const t = bot.play(state);
     metadata = t.metadata;
     state = reducer(state, t.action);
@@ -57,9 +66,8 @@ export function Step({ game, bots, state }) {
 }
 
 export class Bot {
-  constructor({ enumerate, playerID, seed }) {
+  constructor({ enumerate, seed }) {
     this.enumerate = enumerate;
-    this.playerID = playerID;
     this.seed = seed;
   }
 
@@ -94,17 +102,18 @@ export class Bot {
 }
 
 export class RandomBot extends Bot {
-  play({ G, ctx }) {
-    const moves = this.enumerate(G, ctx, this.playerID);
+  play({ G, ctx }, playerID) {
+    const moves = this.enumerate(G, ctx, playerID);
     return { action: this.random(moves) };
   }
 }
 
 export class MCTSBot extends Bot {
-  constructor({ enumerate, playerID, seed, game, iterations }) {
-    super({ enumerate, playerID, seed });
+  constructor({ enumerate, seed, game, iterations, playoutDepth }) {
+    super({ enumerate, seed });
     this.reducer = createGameReducer({ game });
     this.iterations = iterations || 500;
+    this.playoutDepth = playoutDepth || 50;
   }
 
   createNode({ state, parentAction, parent, playerID }) {
@@ -188,9 +197,18 @@ export class MCTSBot extends Bot {
   playout(node) {
     let state = node.state;
 
-    while (state.ctx.gameover === undefined) {
+    for (
+      let i = 0;
+      i < this.playoutDepth && state.ctx.gameover === undefined;
+      i++
+    ) {
       const { G, ctx } = state;
       const moves = this.enumerate(G, ctx, ctx.actionPlayers[0]);
+
+      if (!moves || moves.length == 0) {
+        return undefined;
+      }
+
       const id = this.random(moves.length);
       const childState = this.reducer(state, moves[id]);
       state = childState;
@@ -199,7 +217,7 @@ export class MCTSBot extends Bot {
     return state.ctx.gameover;
   }
 
-  backpropagate(node, result) {
+  backpropagate(node, result = {}) {
     node.visits++;
 
     if (result.draw === true) {
@@ -218,8 +236,8 @@ export class MCTSBot extends Bot {
     }
   }
 
-  play(state) {
-    const root = this.createNode({ state, playerID: this.playerID });
+  play(state, playerID) {
+    const root = this.createNode({ state, playerID });
 
     for (let i = 0; i < this.iterations; i++) {
       const leaf = this.select(root);
@@ -235,9 +253,9 @@ export class MCTSBot extends Bot {
       }
     }
 
-    return {
-      action: selectedChild.parentAction,
-      metadata: root,
-    };
+    const action = selectedChild && selectedChild.parentAction;
+    const metadata = root;
+
+    return { action, metadata };
   }
 }

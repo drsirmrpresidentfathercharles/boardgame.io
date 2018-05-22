@@ -72,40 +72,81 @@ const enumerate = (G, ctx, playerID) => {
   let r = [];
   for (let i = 0; i < 9; i++) {
     if (G.cells[i] === null) {
-      r.push(makeMove('clickCell', i, playerID));
+      r.push(makeMove('clickCell', [i], playerID));
     }
   }
   return r;
 };
 
-test('Simulate', () => {
+describe('Simulate', () => {
   const bots = {
-    '0': new RandomBot({ seed: 'test', enumerate, playerID: '0' }),
-    '1': new RandomBot({ seed: 'test', enumerate, playerID: '1' }),
+    '0': new RandomBot({ seed: 'test', enumerate }),
+    '1': new RandomBot({ seed: 'test', enumerate }),
   };
-  const reducer = createGameReducer({ game: TicTacToe });
-  const state = reducer(undefined, { type: 'init' });
-  const { state: endState } = Simulate({ game: TicTacToe, bots, state });
-  expect(endState.ctx.gameover).not.toBe(undefined);
+
+  test('multiple bots', () => {
+    const reducer = createGameReducer({ game: TicTacToe });
+    const state = reducer(undefined, { type: 'init' });
+    const { state: endState } = Simulate({ game: TicTacToe, bots, state });
+    expect(endState.ctx.gameover).not.toBe(undefined);
+  });
+
+  test('single bot', () => {
+    const bot = new RandomBot({ seed: 'test', enumerate });
+    const reducer = createGameReducer({ game: TicTacToe });
+    const state = reducer(undefined, { type: 'init' });
+    const { state: endState } = Simulate({
+      game: TicTacToe,
+      bots: bot,
+      state,
+      depth: 10,
+    });
+    expect(endState.ctx.gameover).not.toBe(undefined);
+  });
 });
 
-test('Step', () => {
+describe('Step', () => {
   const bots = {
-    '0': new RandomBot({ seed: 'test', enumerate, playerID: '0' }),
-    '1': new RandomBot({ seed: 'test', enumerate, playerID: '1' }),
+    '0': new RandomBot({
+      seed: 'test',
+      enumerate: () => [makeMove('clickCell', [0], '0')],
+    }),
+    '1': new RandomBot({
+      seed: 'test',
+      enumerate: () => [makeMove('clickCell', [1], '1')],
+    }),
   };
   const reducer = createGameReducer({ game: TicTacToe });
-  let state = reducer(undefined, { type: 'init' });
-  const { state: endState } = Step({ game: TicTacToe, bots, state });
-  expect(endState.G.cells.filter(t => t !== null).length).toBe(1);
-  expect(endState.ctx.gameover).toBe(undefined);
+  const initial = reducer(undefined, { type: 'init' });
 
-  state.G.cells = new Array(9).fill('0');
-  state.G.cells[0] = null;
-  state = Step({ game: TicTacToe, bots, state }).state;
-  expect(state.ctx.gameover).not.toBe(undefined);
-  state = Step({ game: TicTacToe, bots, state }).state;
-  expect(state.ctx.gameover).not.toBe(undefined);
+  test('initial moves', () => {
+    const { state } = Step({ game: TicTacToe, bots, state: initial });
+    expect(state.G.cells.filter(t => t !== null).length).toBe(1);
+    const { state: endState } = Step({ game: TicTacToe, bots, state });
+    expect(endState.G.cells.filter(t => t !== null).length).toBe(2);
+  });
+
+  test('end game', () => {
+    let state = { ...initial, G: { ...initial.G } };
+    state.G.cells = new Array(9).fill('0');
+    state.G.cells[0] = null;
+    state = Step({ game: TicTacToe, bots, state }).state;
+    expect(state.ctx.gameover).not.toBe(undefined);
+    state = Step({ game: TicTacToe, bots, state }).state;
+    expect(state.ctx.gameover).not.toBe(undefined);
+  });
+
+  test('multiple bots', () => {
+    const { state } = Step({ game: TicTacToe, bots, state: initial });
+    expect(state.G.cells.filter(t => t !== null).length).toBe(1);
+  });
+
+  test('single bot', () => {
+    const bot = new RandomBot({ seed: 'test', enumerate });
+    const { state } = Step({ game: TicTacToe, bots: bot, state: initial });
+    expect(initial.G.cells.filter(t => t !== null).length).toBe(0);
+    expect(state.G.cells.filter(t => t !== null).length).toBe(1);
+  });
 });
 
 test('Bot', () => {
@@ -118,6 +159,15 @@ describe('MCTSBot', () => {
   test('defaults', () => {
     const b = new MCTSBot({ game: TicTacToe });
     expect(b.iterations).toBe(500);
+  });
+
+  test('game that never ends', () => {
+    const game = Game({});
+    const reducer = createGameReducer({ game });
+    const state = reducer(undefined, { type: 'init' });
+    const bot = new MCTSBot({ seed: 'test', game, enumerate: () => [] });
+    const { state: endState } = Simulate({ game, bots: bot, state });
+    expect(endState.ctx.turn).toBe(0);
   });
 
   test('RandomBot vs. MCTSBot', () => {
