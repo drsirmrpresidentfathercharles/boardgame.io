@@ -25,7 +25,7 @@ class AI extends React.Component {
       gameState: this.reducer(undefined, { type: 'init' }),
     };
 
-    this.next = (G, ctx, playerID) => {
+    this.enumerate = (G, ctx, playerID) => {
       let r = [];
       for (let i = 0; i < 9; i++) {
         if (G.cells[i] === null) {
@@ -44,14 +44,14 @@ class AI extends React.Component {
         iterations: this.state.iterations,
         seed: this.state.seed,
         game: TicTacToe,
-        next: this.next,
+        enumerate: this.enumerate,
         playerID: '0',
       }),
       '1': new MCTSBot({
         iterations: this.state.iterations,
         seed: this.state.seed,
         game: TicTacToe,
-        next: this.next,
+        enumerate: this.enumerate,
         playerID: '1',
       }),
     };

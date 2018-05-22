@@ -68,7 +68,7 @@ const TicTacToe = Game({
   },
 });
 
-const next = (G, ctx, playerID) => {
+const enumerate = (G, ctx, playerID) => {
   let r = [];
   for (let i = 0; i < 9; i++) {
     if (G.cells[i] === null) {
@@ -80,8 +80,8 @@ const next = (G, ctx, playerID) => {
 
 test('Simulate', () => {
   const bots = {
-    '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
-    '1': new RandomBot({ seed: 'test', next, playerID: '1' }),
+    '0': new RandomBot({ seed: 'test', enumerate, playerID: '0' }),
+    '1': new RandomBot({ seed: 'test', enumerate, playerID: '1' }),
   };
   const reducer = createGameReducer({ game: TicTacToe });
   const state = reducer(undefined, { type: 'init' });
@@ -91,8 +91,8 @@ test('Simulate', () => {
 
 test('Step', () => {
   const bots = {
-    '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
-    '1': new RandomBot({ seed: 'test', next, playerID: '1' }),
+    '0': new RandomBot({ seed: 'test', enumerate, playerID: '0' }),
+    '1': new RandomBot({ seed: 'test', enumerate, playerID: '1' }),
   };
   const reducer = createGameReducer({ game: TicTacToe });
   let state = reducer(undefined, { type: 'init' });
@@ -122,12 +122,12 @@ describe('MCTSBot', () => {
 
   test('RandomBot vs. MCTSBot', () => {
     const bots = {
-      '0': new RandomBot({ seed: 'test', next, playerID: '0' }),
+      '0': new RandomBot({ seed: 'test', enumerate, playerID: '0' }),
       '1': new MCTSBot({
         iterations: 200,
         seed: 'test',
         game: TicTacToe,
-        next,
+        enumerate,
         playerID: '1',
       }),
     };
@@ -150,14 +150,14 @@ describe('MCTSBot', () => {
         '0': new MCTSBot({
           seed: i,
           game: TicTacToe,
-          next,
+          enumerate,
           playerID: '0',
           iterations,
         }),
         '1': new MCTSBot({
           seed: i,
           game: TicTacToe,
-          next,
+          enumerate,
           playerID: '1',
           iterations,
         }),

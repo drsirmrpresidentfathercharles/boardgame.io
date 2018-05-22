@@ -57,8 +57,8 @@ export function Step({ game, bots, state }) {
 }
 
 export class Bot {
-  constructor({ next, playerID, seed }) {
-    this.next = next;
+  constructor({ enumerate, playerID, seed }) {
+    this.enumerate = enumerate;
     this.playerID = playerID;
     this.seed = seed;
   }
@@ -95,16 +95,16 @@ export class Bot {
 
 export class RandomBot extends Bot {
   play({ G, ctx }) {
-    const moves = this.next(G, ctx, this.playerID);
+    const moves = this.enumerate(G, ctx, this.playerID);
     return { action: this.random(moves) };
   }
 }
 
 export class MCTSBot extends Bot {
-  constructor({ game, next, playerID, seed, iterations }) {
-    super({ next, playerID, seed });
-    this.iterations = iterations || 500;
+  constructor({ enumerate, playerID, seed, game, iterations }) {
+    super({ enumerate, playerID, seed });
     this.reducer = createGameReducer({ game });
+    this.iterations = iterations || 500;
   }
 
   createNode({ state, parentAction, parent, playerID }) {
@@ -113,10 +113,10 @@ export class MCTSBot extends Bot {
     let actions = [];
 
     if (playerID !== undefined) {
-      actions = this.next(G, ctx, playerID);
+      actions = this.enumerate(G, ctx, playerID);
     } else {
       for (let playerID of ctx.actionPlayers) {
-        actions = actions.concat(this.next(G, ctx, playerID));
+        actions = actions.concat(this.enumerate(G, ctx, playerID));
       }
     }
 
@@ -190,7 +190,7 @@ export class MCTSBot extends Bot {
 
     while (state.ctx.gameover === undefined) {
       const { G, ctx } = state;
-      const moves = this.next(G, ctx, ctx.actionPlayers[0]);
+      const moves = this.enumerate(G, ctx, ctx.actionPlayers[0]);
       const id = this.random(moves.length);
       const childState = this.reducer(state, moves[id]);
       state = childState;
