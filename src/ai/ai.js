@@ -107,24 +107,30 @@ export class MCTSBot extends Bot {
     this.reducer = createGameReducer({ game });
   }
 
-  createNode(state, move, parent) {
+  createNode({ state, parentAction, parent, playerID }) {
     const { G, ctx } = state;
+
     let actions = [];
-    for (let playerID of ctx.actionPlayers) {
-      actions = actions.concat(this.next(G, ctx, playerID));
+
+    if (playerID !== undefined) {
+      actions = this.next(G, ctx, playerID);
+    } else {
+      for (let playerID of ctx.actionPlayers) {
+        actions = actions.concat(this.next(G, ctx, playerID));
+      }
     }
 
     return {
       // Game state at this node.
       state,
+      // Parent of the node.
+      parent,
       // Move used to get to this node.
-      move,
+      parentAction,
       // Unexplored actions.
       actions,
       // Children of the node.
       children: [],
-      // Parent of the node.
-      parent,
       // Number of simulations that pass through this node.
       visits: 0,
       // Number of wins for this node.
@@ -170,7 +176,11 @@ export class MCTSBot extends Bot {
     const action = actions[id];
     node.actions.splice(id, 1);
     const childState = this.reducer(node.state, action);
-    const childNode = this.createNode(childState, action, node);
+    const childNode = this.createNode({
+      state: childState,
+      parentAction: action,
+      parent: node,
+    });
     node.children.push(childNode);
     return childNode;
   }
@@ -196,7 +206,10 @@ export class MCTSBot extends Bot {
       node.value += 0.5;
     }
 
-    if (node.move && result.winner === node.move.payload.playerID) {
+    if (
+      node.parentAction &&
+      result.winner === node.parentAction.payload.playerID
+    ) {
       node.value++;
     }
 
@@ -206,7 +219,7 @@ export class MCTSBot extends Bot {
   }
 
   play(state) {
-    const root = this.createNode(state);
+    const root = this.createNode({ state, playerID: this.playerID });
 
     for (let i = 0; i < this.iterations; i++) {
       const leaf = this.select(root);
@@ -223,7 +236,7 @@ export class MCTSBot extends Bot {
     }
 
     return {
-      action: selectedChild.move,
+      action: selectedChild.parentAction,
       metadata: root,
     };
   }
