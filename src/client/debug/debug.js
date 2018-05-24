@@ -205,6 +205,8 @@ export class Debug extends React.Component {
     restore: PropTypes.func,
     showLog: PropTypes.bool,
     store: PropTypes.any,
+    step: PropTypes.func,
+    simulate: PropTypes.func,
   };
 
   constructor(props) {
@@ -346,6 +348,20 @@ export class Debug extends React.Component {
     );
   }
 
+  renderAI() {
+    if (!this.props.step || !this.props.simulate) {
+      return null;
+    }
+
+    return (
+      <section>
+        <h3>AI</h3>
+        <button onClick={this.props.step}>Step</button>
+        <button onClick={this.props.simulate}>Simulate</button>
+      </section>
+    );
+  }
+
   render() {
     if (!this.state.showDebugUI) {
       return null;
@@ -408,6 +424,7 @@ export class Debug extends React.Component {
             </section>
 
             {this.renderHelp()}
+            {this.renderAI()}
 
             <h3>players</h3>
             <div className="player-box">{players}</div>

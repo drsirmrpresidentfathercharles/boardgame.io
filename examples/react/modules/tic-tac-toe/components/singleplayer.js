@@ -8,12 +8,25 @@
 
 import React from 'react';
 import { Client } from 'boardgame.io/react';
+import { MCTSBot } from 'boardgame.io/ai';
 import TicTacToe from '../game';
 import Board from './board';
 
 const App = Client({
   game: TicTacToe,
   board: Board,
+  ai: {
+    bot: MCTSBot,
+    enumerate: G => {
+      let r = [];
+      for (let i = 0; i < 9; i++) {
+        if (G.cells[i] === null) {
+          r.push({ move: 'clickCell', args: [i] });
+        }
+      }
+      return r;
+    },
+  },
 });
 
 const Singleplayer = () => (

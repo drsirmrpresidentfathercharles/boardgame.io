@@ -7,6 +7,7 @@
  */
 
 import { createGameReducer } from '../core/reducer';
+import { makeMove, gameEvent } from '../core/action-creators';
 import { alea } from '../core/random.alea';
 
 /**
@@ -67,9 +68,26 @@ export function Step({ game, bots, state }) {
 
 export class Bot {
   constructor({ enumerate, seed }) {
-    this.enumerate = enumerate;
+    this.enumerateFn = enumerate;
     this.seed = seed;
   }
+
+  enumerate = (G, ctx, playerID) => {
+    const actions = this.enumerateFn(G, ctx, playerID);
+    return actions.map(a => {
+      if (a.payload !== undefined) {
+        return a;
+      }
+
+      if (a.move !== undefined) {
+        return makeMove(a.move, a.args, playerID);
+      }
+
+      if (a.event !== undefined) {
+        return gameEvent(a.event, a.args, playerID);
+      }
+    });
+  };
 
   random(arg) {
     let number;

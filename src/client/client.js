@@ -54,6 +54,7 @@ export function createMoveDispatchers(moveNames, store, playerID) {
 class _ClientImpl {
   constructor({
     game,
+    ai,
     numPlayers,
     multiplayer,
     socketOpts,
@@ -78,6 +79,24 @@ class _ClientImpl {
       numPlayers,
       multiplayer,
     });
+
+    if (ai !== undefined && multiplayer === undefined) {
+      this.simulationIterations = 1000;
+      this.bot = new ai.bot({ game, ...ai });
+
+      this.step = () => {
+        const state = this.store.getState();
+        const playerID = state.ctx.actionPlayers[0];
+        const { action } = this.bot.play(state, playerID);
+        this.store.dispatch(action);
+      };
+
+      this.simulate = () => {
+        for (let i = 0; i < this.simulationIterations; i++) {
+          this.step();
+        }
+      };
+    }
 
     this.reset = () => {
       this.store.dispatch(ActionCreators.reset());
