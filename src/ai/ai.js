@@ -44,28 +44,6 @@ export function Simulate({ game, bots, state, depth }) {
   return { state, metadata };
 }
 
-/**
- * Steps forward one move.
- *
- * @param {...object} game - The game object.
- * @param {...object} bots - An array of bots.
- * @param {...object} state - The game state to start from.
- */
-export function Step({ game, bots, state }) {
-  const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
-
-  let metadata = null;
-  if (state.ctx.gameover === undefined && state.ctx.actionPlayers.length > 0) {
-    const playerID = state.ctx.actionPlayers[0];
-    const bot = bots instanceof Bot ? bots : bots[playerID];
-    const t = bot.play(state);
-    metadata = t.metadata;
-    state = reducer(state, t.action);
-  }
-
-  return { state, metadata };
-}
-
 export class Bot {
   constructor({ enumerate, seed }) {
     this.enumerateFn = enumerate;

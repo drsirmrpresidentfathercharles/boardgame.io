@@ -9,7 +9,7 @@
 import Game from '../core/game';
 import { createGameReducer } from '../core/reducer';
 import { makeMove } from '../core/action-creators';
-import { Simulate, Step, Bot, RandomBot, MCTSBot } from './ai';
+import { Simulate, Bot, RandomBot, MCTSBot } from './ai';
 
 function IsVictory(cells) {
   const positions = [
@@ -102,50 +102,6 @@ describe('Simulate', () => {
       depth: 10,
     });
     expect(endState.ctx.gameover).not.toBe(undefined);
-  });
-});
-
-describe('Step', () => {
-  const bots = {
-    '0': new RandomBot({
-      seed: 'test',
-      enumerate: () => [makeMove('clickCell', [0], '0')],
-    }),
-    '1': new RandomBot({
-      seed: 'test',
-      enumerate: () => [makeMove('clickCell', [1], '1')],
-    }),
-  };
-  const reducer = createGameReducer({ game: TicTacToe });
-  const initial = reducer(undefined, { type: 'init' });
-
-  test('initial moves', () => {
-    const { state } = Step({ game: TicTacToe, bots, state: initial });
-    expect(state.G.cells.filter(t => t !== null).length).toBe(1);
-    const { state: endState } = Step({ game: TicTacToe, bots, state });
-    expect(endState.G.cells.filter(t => t !== null).length).toBe(2);
-  });
-
-  test('end game', () => {
-    let state = { ...initial, G: { ...initial.G } };
-    state.G.cells = new Array(9).fill('0');
-    state.G.cells[0] = null;
-    state = Step({ game: TicTacToe, bots, state }).state;
-    expect(state.ctx.gameover).not.toBe(undefined);
-    state = Step({ game: TicTacToe, bots, state }).state;
-    expect(state.ctx.gameover).not.toBe(undefined);
-  });
-
-  test('multiple bots', () => {
-    const { state } = Step({ game: TicTacToe, bots, state: initial });
-    expect(state.G.cells.filter(t => t !== null).length).toBe(1);
-  });
-
-  test('single bot', () => {
-    const bot = new RandomBot({ seed: 'test', enumerate });
-    const { state } = Step({ game: TicTacToe, bots: bot, state: initial });
-    expect(initial.G.cells.filter(t => t !== null).length).toBe(0);
-    expect(state.G.cells.filter(t => t !== null).length).toBe(1);
   });
 });
 
