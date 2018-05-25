@@ -128,7 +128,6 @@ export function Client({
           events: this.client.events,
           gameID: gameID,
           playerID: playerID,
-          simulate: this.client.simulate,
           step: this.client.step,
           reset: this.client.reset,
           undo: this.client.undo,

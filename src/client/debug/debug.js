@@ -206,7 +206,6 @@ export class Debug extends React.Component {
     showLog: PropTypes.bool,
     store: PropTypes.any,
     step: PropTypes.func,
-    simulate: PropTypes.func,
   };
 
   constructor(props) {
@@ -243,6 +242,7 @@ export class Debug extends React.Component {
       r: true,
       d: true,
       l: true,
+      t: true,
     };
     this.shortcuts = null;
 
@@ -337,11 +337,11 @@ export class Debug extends React.Component {
           </div>
 
           <KeyboardShortcut value="s" onPress={this.saveState}>
-            save localStorage
+            save
           </KeyboardShortcut>
 
           <KeyboardShortcut value="r" onPress={this.restoreState}>
-            restore localStorage
+            restore
           </KeyboardShortcut>
         </span>
       </section>
@@ -349,15 +349,16 @@ export class Debug extends React.Component {
   }
 
   renderAI() {
-    if (!this.props.step || !this.props.simulate) {
+    if (!this.props.step) {
       return null;
     }
 
     return (
       <section>
         <h3>AI</h3>
-        <button onClick={this.props.step}>Step</button>
-        <button onClick={this.props.simulate}>Simulate</button>
+        <KeyboardShortcut value="t" onPress={this.props.step}>
+          step
+        </KeyboardShortcut>
       </section>
     );
   }
