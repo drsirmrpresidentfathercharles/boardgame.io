@@ -180,9 +180,10 @@ export class MCTSBot extends Bot {
     let best = 0.0;
 
     for (const child of node.children) {
+      const childVisits = child.visits + Number.EPSILON;
       const uct =
-        child.value / child.visits +
-        Math.sqrt(2 * Math.log(node.visits) / child.visits);
+        child.value / childVisits +
+        Math.sqrt(2 * Math.log(node.visits) / childVisits);
       if (selectedChild == null || uct > best) {
         best = uct;
         selectedChild = child;
