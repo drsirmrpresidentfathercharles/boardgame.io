@@ -56,13 +56,14 @@ test('basic', () => {
     <Debug
       gamestate={gamestate}
       store={store}
+      step={() => {}}
       endTurn={() => {}}
       gameID="default"
     />
   );
 
   const titles = debug.find('h3').map(title => title.text());
-  expect(titles).toEqual(['players', 'moves', 'events', 'state']);
+  expect(titles).toEqual(['AI', 'players', 'moves', 'events', 'state']);
 
   expect(debug.state('showLog')).toEqual(false);
   debug
@@ -160,7 +161,7 @@ test('shortcuts are unique a-z', () => {
 test('shortcuts are unique first char', () => {
   const moves = {
     clickCell: () => {},
-    takeCard: () => {},
+    playCard: () => {},
   };
 
   const element = React.createElement(Debug, {
@@ -173,7 +174,7 @@ test('shortcuts are unique first char', () => {
 
   expect(instance.shortcuts).toEqual({
     clickCell: 'c',
-    takeCard: 't',
+    playCard: 'p',
   });
 });
 

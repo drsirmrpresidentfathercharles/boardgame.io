@@ -8,6 +8,7 @@
 
 import Game from '../core/game';
 import { createGameReducer } from '../core/reducer';
+import { MAKE_MOVE, GAME_EVENT } from '../core/action-types';
 import { makeMove } from '../core/action-creators';
 import { Simulate, Bot, RandomBot, MCTSBot } from './ai';
 
@@ -105,10 +106,36 @@ describe('Simulate', () => {
   });
 });
 
-test('Bot', () => {
-  const b = new Bot({});
-  expect(b.random()).toBeGreaterThanOrEqual(0);
-  expect(b.random()).toBeLessThan(1);
+describe('Bot', () => {
+  test('random', () => {
+    const b = new Bot({});
+    expect(b.random()).toBeGreaterThanOrEqual(0);
+    expect(b.random()).toBeLessThan(1);
+  });
+
+  test('enumerate - makeMove', () => {
+    const enumerate = () => [makeMove('move')];
+    const b = new Bot({ enumerate });
+    expect(b.enumerate()[0].type).toBe(MAKE_MOVE);
+  });
+
+  test('enumerate - translate to makeMove', () => {
+    const enumerate = () => [{ move: 'move' }];
+    const b = new Bot({ enumerate });
+    expect(b.enumerate()[0].type).toBe(MAKE_MOVE);
+  });
+
+  test('enumerate - translate to gameEvent', () => {
+    const enumerate = () => [{ event: 'endTurn' }];
+    const b = new Bot({ enumerate });
+    expect(b.enumerate()[0].type).toBe(GAME_EVENT);
+  });
+
+  test('enumerate - unrecognized', () => {
+    const enumerate = () => [{ unknown: true }];
+    const b = new Bot({ enumerate });
+    expect(b.enumerate()).toEqual([undefined]);
+  });
 });
 
 describe('MCTSBot', () => {
