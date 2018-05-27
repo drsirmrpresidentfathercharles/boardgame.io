@@ -16,6 +16,7 @@ import Token from '../src/ui/token.js';
 import { Card } from '../src/ui/card.js';
 import { Grid } from '../src/ui/grid.js';
 import { HexGrid } from '../src/ui/hex.js';
+import { Simulate, RandomBot, MCTSBot } from '../src/ai/ai.js';
 
 export default {
   Client,
@@ -30,4 +31,7 @@ export default {
   Token,
   Grid,
   HexGrid,
+  Simulate,
+  RandomBot,
+  MCTSBot,
 };

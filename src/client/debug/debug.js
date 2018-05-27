@@ -238,7 +238,7 @@ export class Debug extends React.Component {
 
   assignShortcuts() {
     const taken = {
-      s: true,
+      b: true,
       r: true,
       d: true,
       l: true,
@@ -356,8 +356,8 @@ export class Debug extends React.Component {
     return (
       <section>
         <h3>AI</h3>
-        <KeyboardShortcut value="t" onPress={this.props.step}>
-          step
+        <KeyboardShortcut value="b" onPress={this.props.step}>
+          bot move
         </KeyboardShortcut>
       </section>
     );

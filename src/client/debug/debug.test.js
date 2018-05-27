@@ -154,7 +154,7 @@ test('shortcuts are unique a-z', () => {
 
   expect(instance.shortcuts).toEqual({
     takeCard: 'a',
-    takeToken: 'b',
+    takeToken: 'c',
   });
 });
 
