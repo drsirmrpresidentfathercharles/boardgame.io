@@ -56,6 +56,9 @@ export function Client({
       // The ID of the player associated with this client.
       // Only relevant in multiplayer.
       playerID: PropTypes.string,
+      // This client's authentication credentials.
+      // Only relevant in multiplayer.
+      credentials: PropTypes.string,
       // Enable / disable the Debug UI.
       debug: PropTypes.bool,
     };
@@ -63,7 +66,12 @@ export function Client({
     static defaultProps = {
       gameID: 'default',
       playerID: null,
+      credentials: null,
       debug: true,
+    };
+
+    state = {
+      gameStateOverride: null,
     };
 
     constructor(props) {
@@ -76,6 +84,7 @@ export function Client({
         multiplayer,
         gameID: props.gameID,
         playerID: props.playerID,
+        credentials: props.credentials,
         enhancer,
       });
 
@@ -89,20 +98,29 @@ export function Client({
       if (nextProps.playerID != this.props.playerID) {
         this.client.updatePlayerID(nextProps.playerID);
       }
-    }
-
-    componentWillMount() {
-      if (typeof window !== 'undefined') {
-        this.client.connect();
+      if (nextProps.credentials != this.props.credentials) {
+        this.client.updateCredentials(nextProps.credentials);
       }
     }
+
+    componentDidMount() {
+      this.client.connect();
+    }
+
+    overrideGameState = state => {
+      this.setState({ gameStateOverride: state });
+    };
 
     render() {
       let _board = null;
       let _debug = null;
 
-      const state = this.client.getState();
+      let state = this.client.getState();
       const { gameID, playerID, debug: debugProp, ...rest } = this.props;
+
+      if (this.state.gameStateOverride) {
+        state = { ...state, ...this.state.gameStateOverride };
+      }
 
       if (board) {
         _board = React.createElement(board, {
@@ -122,6 +140,7 @@ export function Client({
       if (debug && debugProp) {
         _debug = React.createElement(Debug, {
           gamestate: state,
+          reducer: this.client.reducer,
           store: this.client.store,
           isMultiplayer: multiplayer !== undefined,
           moves: this.client.moves,
@@ -132,6 +151,7 @@ export function Client({
           reset: this.client.reset,
           undo: this.client.undo,
           redo: this.client.redo,
+          overrideGameState: this.overrideGameState,
         });
       }
 

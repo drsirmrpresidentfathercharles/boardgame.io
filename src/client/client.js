@@ -19,12 +19,19 @@ import { createGameReducer } from '../core/reducer';
  * @param {object} store - The Redux store to create dispatchers for.
  * @param {string} playerID - The ID of the player dispatching these events.
  */
-export function createEventDispatchers(eventNames, store, playerID) {
+export function createEventDispatchers(
+  eventNames,
+  store,
+  playerID,
+  credentials
+) {
   let dispatchers = {};
   for (let i = 0; i < eventNames.length; i++) {
     const name = eventNames[i];
     dispatchers[name] = function(...args) {
-      store.dispatch(ActionCreators.gameEvent(name, args, playerID));
+      store.dispatch(
+        ActionCreators.gameEvent(name, args, playerID, credentials)
+      );
     };
   }
   return dispatchers;
@@ -37,12 +44,14 @@ export function createEventDispatchers(eventNames, store, playerID) {
  * @param {Array} moveNames - A list of move names.
  * @param {object} store - The Redux store to create dispatchers for.
  */
-export function createMoveDispatchers(moveNames, store, playerID) {
+export function createMoveDispatchers(moveNames, store, playerID, credentials) {
   let dispatchers = {};
   for (let i = 0; i < moveNames.length; i++) {
     const name = moveNames[i];
     dispatchers[name] = function(...args) {
-      store.dispatch(ActionCreators.makeMove(name, args, playerID));
+      store.dispatch(
+        ActionCreators.makeMove(name, args, playerID, credentials)
+      );
     };
   }
   return dispatchers;
@@ -60,11 +69,13 @@ class _ClientImpl {
     socketOpts,
     gameID,
     playerID,
+    credentials,
     enhancer,
   }) {
     this.game = game;
     this.playerID = playerID;
     this.gameID = gameID;
+    this.credentials = credentials;
 
     let server = undefined;
     if (multiplayer instanceof Object && 'server' in multiplayer) {
@@ -74,7 +85,7 @@ class _ClientImpl {
 
     this.multiplayer = multiplayer;
 
-    const GameReducer = createGameReducer({
+    this.reducer = createGameReducer({
       game,
       numPlayers,
       multiplayer,
@@ -116,9 +127,9 @@ class _ClientImpl {
         server,
         socketOpts,
       });
-      this.store = this.multiplayerClient.createStore(GameReducer, enhancer);
+      this.store = this.multiplayerClient.createStore(this.reducer, enhancer);
     } else {
-      this.store = createStore(GameReducer, enhancer);
+      this.store = createStore(this.reducer, enhancer);
 
       // If no playerID was provided, set it to undefined.
       if (this.playerID === null) {
@@ -188,13 +199,15 @@ class _ClientImpl {
     this.moves = createMoveDispatchers(
       this.game.moveNames,
       this.store,
-      this.playerID
+      this.playerID,
+      this.credentials
     );
 
     this.events = createEventDispatchers(
       this.game.flow.eventNames,
       this.store,
-      this.playerID
+      this.playerID,
+      this.credentials
     );
   }
 
@@ -215,6 +228,11 @@ class _ClientImpl {
       this.multiplayerClient.updateGameID(gameID);
     }
   }
+
+  updateCredentials(credentials) {
+    this.credentials = credentials;
+    this.createDispatchers();
+  }
 }
 
 /**
@@ -230,6 +248,7 @@ class _ClientImpl {
  * @param {...object} socketOpts - Options to pass to socket.io.
  * @param {...object} gameID - The gameID that you want to connect to.
  * @param {...object} playerID - The playerID associated with this client.
+ * @param {...string} credentials - The authentication credentials associated with this client.
  *
  * Returns:
  *   A JS object that provides an API to interact with the

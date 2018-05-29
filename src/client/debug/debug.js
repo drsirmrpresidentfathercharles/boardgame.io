@@ -206,6 +206,8 @@ export class Debug extends React.Component {
     showLog: PropTypes.bool,
     store: PropTypes.any,
     step: PropTypes.func,
+    reducer: PropTypes.func,
+    overrideGameState: PropTypes.func,
   };
 
   constructor(props) {
@@ -316,6 +318,10 @@ export class Debug extends React.Component {
 
   toggleHelp = () => {
     this.setState(oldstate => ({ help: !oldstate.help }));
+  };
+
+  onLogHover = ({ state }) => {
+    this.props.overrideGameState(state);
   };
 
   renderHelp() {
@@ -458,7 +464,12 @@ export class Debug extends React.Component {
 
         {this.state.showLog && (
           <section>
-            <GameLog store={this.props.store} />
+            <GameLog
+              onHover={this.onLogHover}
+              reducer={this.props.reducer}
+              log={this.props.gamestate.log}
+              initialState={this.props.gamestate._initial}
+            />
           </section>
         )}
       </div>
