@@ -206,6 +206,7 @@ export class Debug extends React.Component {
     showLog: PropTypes.bool,
     store: PropTypes.any,
     step: PropTypes.func,
+    reset: PropTypes.func,
     reducer: PropTypes.func,
     overrideGameState: PropTypes.func,
   };
@@ -342,14 +343,6 @@ export class Debug extends React.Component {
           <div className="key">
             <div className="key-box">l</div> toggle Log
           </div>
-
-          <KeyboardShortcut value="s" onPress={this.saveState}>
-            save
-          </KeyboardShortcut>
-
-          <KeyboardShortcut value="r" onPress={this.restoreState}>
-            restore
-          </KeyboardShortcut>
         </span>
       </section>
     );
@@ -367,22 +360,38 @@ export class Debug extends React.Component {
     }
   };
 
-  renderAI() {
-    if (!this.props.step) {
-      return null;
+  renderControls() {
+    let ai = null;
+
+    if (this.props.step) {
+      ai = [
+        <KeyboardShortcut key="4" value="4" onPress={this.props.step}>
+          step
+        </KeyboardShortcut>,
+
+        <KeyboardShortcut key="5" value="5" onPress={this.simulate}>
+          simulate
+        </KeyboardShortcut>,
+      ];
     }
 
     return (
-      <section>
-        <h3>AI</h3>
+      <section className="controls">
+        <h3>Controls</h3>
 
-        <KeyboardShortcut value="n" onPress={this.props.step}>
-          step
+        <KeyboardShortcut value="1" onPress={this.props.reset}>
+          reset
         </KeyboardShortcut>
 
-        <KeyboardShortcut value="s" onPress={this.simulate}>
-          simulate
+        <KeyboardShortcut value="2" onPress={this.saveState}>
+          save
         </KeyboardShortcut>
+
+        <KeyboardShortcut value="3" onPress={this.restoreState}>
+          restore
+        </KeyboardShortcut>
+
+        {ai}
       </section>
     );
   }
@@ -449,20 +458,20 @@ export class Debug extends React.Component {
             </section>
 
             {this.renderHelp()}
-            {this.renderAI()}
+            {this.renderControls()}
 
-            <h3>players</h3>
+            <h3>Players</h3>
             <div className="player-box">{players}</div>
 
-            <h3>moves</h3>
+            <h3>Moves</h3>
 
             <section>{moves}</section>
 
-            <h3>events</h3>
+            <h3>Events</h3>
 
             <section>{events}</section>
 
-            <h3>state</h3>
+            <h3>State</h3>
 
             <section>
               <pre className="json">

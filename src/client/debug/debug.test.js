@@ -65,7 +65,7 @@ test('basic', () => {
   );
 
   const titles = debug.find('h3').map(title => title.text());
-  expect(titles).toEqual(['AI', 'players', 'moves', 'events', 'state']);
+  expect(titles).toEqual(['Controls', 'Players', 'Moves', 'Events', 'State']);
 
   expect(debug.state('showLog')).toEqual(false);
   debug
@@ -180,48 +180,47 @@ test('shortcuts are unique first char', () => {
   });
 });
 
-test('save / restore', () => {
+describe('save / restore', () => {
   let loggedAction = null;
   const store = createStore((state, action) => {
     loggedAction = action;
   });
 
-  const debug = Enzyme.mount(
-    <Debug
-      store={store}
-      gamestate={gamestate}
-      endTurn={() => {}}
-      gameID="default"
-    />
-  );
-
   const restoredState = { restore: true };
   let restoredJSON = JSON.stringify(restoredState);
   const setItem = jest.fn();
   const getItem = jest.fn(() => restoredJSON);
-  window.localStorage = { setItem, getItem };
 
-  debug
-    .find('.key-box')
-    .at(3)
-    .simulate('click');
-  expect(setItem).toHaveBeenCalled();
+  beforeEach(() => {
+    window.localStorage = { setItem, getItem };
 
-  debug
-    .find('.key-box')
-    .at(4)
-    .simulate('click');
-  expect(getItem).toHaveBeenCalled();
+    Enzyme.mount(
+      <Debug
+        store={store}
+        gamestate={gamestate}
+        endTurn={() => {}}
+        gameID="default"
+      />
+    );
+  });
 
-  expect(loggedAction).toEqual(restore(restoredState));
+  test('save', () => {
+    Mousetrap.simulate('2');
+    expect(setItem).toHaveBeenCalled();
+  });
 
-  restoredJSON = null;
-  loggedAction = null;
-  debug
-    .find('.key-box')
-    .at(4)
-    .simulate('click');
-  expect(loggedAction).toEqual(null);
+  test('restore', () => {
+    Mousetrap.simulate('3');
+    expect(getItem).toHaveBeenCalled();
+    expect(loggedAction).toEqual(restore(restoredState));
+  });
+
+  test('restore from nothing does nothing', () => {
+    restoredJSON = null;
+    loggedAction = null;
+    Mousetrap.simulate('3');
+    expect(loggedAction).toEqual(null);
+  });
 });
 
 test('toggle Debug UI', () => {
@@ -304,7 +303,7 @@ describe('simulate', () => {
       />
     );
     expect(step).not.toHaveBeenCalled();
-    Mousetrap.simulate('s');
+    Mousetrap.simulate('5');
     expect(step).toHaveBeenCalled();
   });
 
@@ -320,7 +319,7 @@ describe('simulate', () => {
     );
 
     expect(step).not.toHaveBeenCalled();
-    Mousetrap.simulate('s');
+    Mousetrap.simulate('5');
     expect(step).toHaveBeenCalled();
   });
 });
