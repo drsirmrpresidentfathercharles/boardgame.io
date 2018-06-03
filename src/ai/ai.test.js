@@ -7,7 +7,7 @@
  */
 
 import Game from '../core/game';
-import { createGameReducer } from '../core/reducer';
+import { CreateGameReducer } from '../core/reducer';
 import { MAKE_MOVE, GAME_EVENT } from '../core/action-types';
 import { makeMove } from '../core/action-creators';
 import { Simulate, Bot, RandomBot, MCTSBot } from './ai';
@@ -86,7 +86,7 @@ describe('Simulate', () => {
   };
 
   test('multiple bots', () => {
-    const reducer = createGameReducer({ game: TicTacToe });
+    const reducer = CreateGameReducer({ game: TicTacToe });
     const state = reducer(undefined, { type: 'init' });
     const { state: endState } = Simulate({ game: TicTacToe, bots, state });
     expect(endState.ctx.gameover).not.toBe(undefined);
@@ -94,7 +94,7 @@ describe('Simulate', () => {
 
   test('single bot', () => {
     const bot = new RandomBot({ seed: 'test', enumerate });
-    const reducer = createGameReducer({ game: TicTacToe });
+    const reducer = CreateGameReducer({ game: TicTacToe });
     const state = reducer(undefined, { type: 'init' });
     const { state: endState } = Simulate({
       game: TicTacToe,
@@ -146,7 +146,7 @@ describe('MCTSBot', () => {
 
   test('game that never ends', () => {
     const game = Game({});
-    const reducer = createGameReducer({ game });
+    const reducer = CreateGameReducer({ game });
     const state = reducer(undefined, { type: 'init' });
     const bot = new MCTSBot({ seed: 'test', game, enumerate: () => [] });
     const { state: endState } = Simulate({ game, bots: bot, state });
@@ -165,7 +165,7 @@ describe('MCTSBot', () => {
       }),
     };
 
-    const reducer = createGameReducer({ game: TicTacToe });
+    const reducer = CreateGameReducer({ game: TicTacToe });
 
     for (let i = 0; i < 5; i++) {
       const state = reducer(undefined, { type: 'init' });
@@ -175,7 +175,7 @@ describe('MCTSBot', () => {
   });
 
   test('MCTSBot vs. MCTSBot', () => {
-    const reducer = createGameReducer({ game: TicTacToe });
+    const reducer = CreateGameReducer({ game: TicTacToe });
     const iterations = 400;
 
     for (let i = 0; i < 5; i++) {

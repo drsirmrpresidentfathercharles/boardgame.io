@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { createGameReducer } from '../../../../../src/core/reducer';
+import { CreateGameReducer } from '../../../../../src/core/reducer';
 import { makeMove } from '../../../../../src/core/action-creators';
 import TicTacToe from '../game';
 import Board from './board';
@@ -18,7 +18,7 @@ class AI extends React.Component {
   constructor(props) {
     super(props);
 
-    this.reducer = createGameReducer({ game: TicTacToe });
+    this.reducer = CreateGameReducer({ game: TicTacToe });
     this.state = {
       iterations: 500,
       seed: 'tictac',

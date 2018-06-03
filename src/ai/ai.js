@@ -6,7 +6,7 @@
  * https://opensource.org/licenses/MIT.
  */
 
-import { createGameReducer } from '../core/reducer';
+import { CreateGameReducer } from '../core/reducer';
 import { makeMove, gameEvent } from '../core/action-creators';
 import { alea } from '../core/random.alea';
 
@@ -19,7 +19,7 @@ import { alea } from '../core/random.alea';
  */
 export function Simulate({ game, bots, state, depth }) {
   if (depth === undefined) depth = 10000;
-  const reducer = createGameReducer({ game, numPlayers: state.ctx.numPlayers });
+  const reducer = CreateGameReducer({ game, numPlayers: state.ctx.numPlayers });
 
   let metadata = null;
   let iter = 0;
@@ -107,7 +107,7 @@ export class RandomBot extends Bot {
 export class MCTSBot extends Bot {
   constructor({ enumerate, seed, game, iterations, playoutDepth }) {
     super({ enumerate, seed });
-    this.reducer = createGameReducer({ game });
+    this.reducer = CreateGameReducer({ game });
     this.iterations = iterations || 500;
     this.playoutDepth = playoutDepth || 50;
   }
