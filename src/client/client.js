@@ -94,15 +94,16 @@ class _ClientImpl {
     if (ai !== undefined && multiplayer === undefined) {
       this.bot = new ai.bot({ game, ...ai });
 
-      this.step = (iterations = 1) => {
-        for (let i = 0; i < iterations; i++) {
-          const state = this.store.getState();
-          const playerID = state.ctx.actionPlayers[0];
-          const { action } = this.bot.play(state, playerID);
-          if (action) {
-            this.store.dispatch(action);
-          }
+      this.step = () => {
+        const state = this.store.getState();
+        const playerID = state.ctx.actionPlayers[0];
+        const { action } = this.bot.play(state, playerID);
+
+        if (action) {
+          this.store.dispatch(action);
         }
+
+        return action;
       };
     }
 

@@ -156,7 +156,7 @@ test('shortcuts are unique a-z', () => {
 
   expect(instance.shortcuts).toEqual({
     takeCard: 'a',
-    takeToken: 'c',
+    takeToken: 'b',
   });
 });
 
@@ -290,4 +290,37 @@ test('toggle help', () => {
   expect(debug.state()).toMatchObject({ help: false });
   Mousetrap.simulate('?');
   expect(debug.state()).toMatchObject({ help: true });
+});
+
+describe('simulate', () => {
+  test('basic', () => {
+    const step = jest.fn(() => true);
+    Enzyme.mount(
+      <Debug
+        step={step}
+        gamestate={gamestate}
+        endTurn={() => {}}
+        gameID="default"
+      />
+    );
+    expect(step).not.toHaveBeenCalled();
+    Mousetrap.simulate('s');
+    expect(step).toHaveBeenCalled();
+  });
+
+  test('break out if no action is returned', () => {
+    const step = jest.fn(() => undefined);
+    Enzyme.mount(
+      <Debug
+        step={step}
+        gamestate={gamestate}
+        endTurn={() => {}}
+        gameID="default"
+      />
+    );
+
+    expect(step).not.toHaveBeenCalled();
+    Mousetrap.simulate('s');
+    expect(step).toHaveBeenCalled();
+  });
 });

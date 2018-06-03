@@ -240,7 +240,8 @@ export class Debug extends React.Component {
 
   assignShortcuts() {
     const taken = {
-      b: true,
+      n: true,
+      s: true,
       r: true,
       d: true,
       l: true,
@@ -354,6 +355,18 @@ export class Debug extends React.Component {
     );
   }
 
+  simulate = async (iterations = 10000, sleepTimeout = 100) => {
+    function sleep() {
+      return new Promise(resolve => setTimeout(resolve, sleepTimeout));
+    }
+
+    for (let i = 0; i < iterations; i++) {
+      const action = this.props.step();
+      if (!action) break;
+      await sleep(100);
+    }
+  };
+
   renderAI() {
     if (!this.props.step) {
       return null;
@@ -362,8 +375,13 @@ export class Debug extends React.Component {
     return (
       <section>
         <h3>AI</h3>
-        <KeyboardShortcut value="b" onPress={this.props.step}>
-          bot move
+
+        <KeyboardShortcut value="n" onPress={this.props.step}>
+          step
+        </KeyboardShortcut>
+
+        <KeyboardShortcut value="s" onPress={this.simulate}>
+          simulate
         </KeyboardShortcut>
       </section>
     );
